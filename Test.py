@@ -1,26 +1,40 @@
-import unirest
-import simplejson as json
+import json
+import requests
+import os
+import re
+
+FILE_EXTENSION = ".png"
 
 def getDemonym(countryName):
-    response = unirest.get("https://restcountries-v1.p.mashape.com/name/" + countryName,
-        headers={
-            "X-Mashape-Key": "q99HjRn1x8mshKUqu0L2HJwgQhmUp1rSGDkjsnLvbmVw6rXDfm",
-            "Accept": "application/json"
-        }
-    )
-    data = response.raw_body
-    print (data)
-    jsond=json.load(data)
-    # print(jsond['demonym'])
+    url = "https://restcountries-v1.p.mashape.com/name/" + countryName
+    header={ "X-Mashape-Key": "q99HjRn1x8mshKUqu0L2HJwgQhmUp1rSGDkjsnLvbmVw6rXDfm", "Accept": "application/json"}
+    t = requests.get(url, headers=header)
+    if t.status_code == 404:
+        print("Error Trying to Find", countryName)
+        return countryName
 
-
-# def changeFileName(oldValue,newValue):
+    newDictionary=json.loads(t.content)
+    return str(newDictionary[0]['demonym'])
 
 def driver():
-    # countryName = raw_input('Enter a Country: ')
-    # print("Input is working:",countryName)
-    demonym = getDemonym("Germany")
-    # print(demonym)
-    print("Hi")
+
+    FILE_PATH = 'Flag_Nationalities'
+
+
+    for fileName in os.listdir(FILE_PATH):
+        countryName = str(fileName)
+        countryName = re.sub(r'_', ' ', countryName)
+        demonym = getDemonym(countryName.replace(FILE_EXTENSION,''))
+
+
+
+        oldFileName = os.path.join(FILE_PATH, str(fileName))
+
+        newFileName = os.path.join(FILE_PATH, str(demonym)+FILE_EXTENSION)
+
+        print newFileName
+
+        # os.rename("Albania.png","Albanian.png")
+        os.rename(oldFileName,newFileName)
 
 driver()
